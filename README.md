@@ -1,96 +1,83 @@
-# Robocar Emulator
+# Robocar Launcher
 
 ### Foreword
 
 *The file `README_ORIGINAL.md` contains all information related to the Robocar World Championship and the research platform it uses. This file focuses on making things work to participate in the Championship.*
 
-### How to kickstart this stuff?
+### Installation
 
-You should start with checking whether you have all the dependencies required, please refer to the `README_ORIGINAL.md` file.
-
-From now on, we assume that you were able to `make` the contents of `rcemu` and build the `.jar` from `rcwin`.
-
-#### Smartcity
-After acquiring the right `.osm` file, the first thing you start should be the `smartcity`, somehow like this:
+Firstly visit the original FAQ site and install all these packages that required to build Robocar City Emulator Platform on Ubuntu:
 
 ```
- rcemu$ src/smartcity --osm=../berlin.osm --city=Berlin --shm=BerlinSharedMemory --node2gps=../berlin-lmap.txt
+https://github.com/nbatfai/robocar-emulator/wiki/FAQ
 ```
 
-After the `--osm` you must the `.osm` file to run the simulation on. Make sure you specify the same `shm` option from now on to all applications.
+Secondly do these stuff:
 
-#### Traffic
-We have our playground, let's get some toys! Or something that can handle our toys, that's what `traffic` is:
+#### Robocar City Emulator
 
 ```
-rcemu$ src/traffic --shm=BerlinSharedMemory
+rcemu$ autoreconf --install
+libtoolize: putting auxiliary files in `.'.
+libtoolize: copying file `./ltmain.sh'
+configure.ac:42: installing './config.guess'
+configure.ac:42: installing './config.sub'
+configure.ac:22: installing './install-sh'
+configure.ac:22: installing './missing'
+src/Makefile.am: installing './depcomp'
+configure.ac: installing './ylwrap'
+rcemu$
 ```
 
-**IMPORTANT: The default port is 10007. You can change it using the --port option!**
+```
+rcemu$ ./configure 
+...
+checking for the Boost thread library... (cached) yes
+checking boost/asio.hpp usability... yes
+checking boost/asio.hpp presence... yes
+checking for boost/asio.hpp... yes
+checking for osmium/osm/relation.hpp... yes
+checking for osmium/io/any_input.hpp... yes
+checking for library containing shm_open... -lrt
+checking for shm_open... yes
+checking for flex... flex
+checking lex output file root... lex.yy
+checking lex library... none needed
+checking whether yytext is a pointer... no
+checking for flex... flex
+checking that generated files are newer than configure... done
+configure: creating ./config.status
+config.status: creating Makefile
+config.status: creating src/Makefile
+config.status: executing depfiles commands
+config.status: executing libtool commands
+rcemu$ 
+```
+
+```
+rcemu$ make
+...
+make[1]: Leaving directory `/home/nbatfai/ROBOCAR/temp/robocar-emulator/justine/rcemu/src'
+make[1]: Entering directory `/home/nbatfai/ROBOCAR/temp/robocar-emulator/justine/rcemu'
+make[1]: Nothing to be done for `all-am'.
+make[1]: Leaving directory `/home/nbatfai/ROBOCAR/temp/robocar-emulator/justine/rcemu'
+rcemu$
+```
 
 #### Car Window
-At the moment we are *blind*, so let's just visualise what's happening:
-
-```
-rcwin$ java -jar target/site/justine-rcwin-0.0.16-jar-with-dependencies.jar ../berlin-lmap.txt
-```
-
-As you've probably noted, the input file given to the `Car Window` must be the same as the output file of the `smartcity`.
-
-Also, don't forget to build the `jar` file this way:
 
 ```
 rcwin$ mvn clean compile package site assembly:assembly
 ```
 
-#### Samplemyshmclient
-And here it comes! The fun part, adding cop cars and the gangsters:
+#### Robocar Launcher
 
 ```
-rcemu$ src/samplemyshmclient --shm=BerlinSharedMemory --team=BerlinPolice
+RobocarLauncher$ mvn package
 ```
 
-The default port is 10007.
-
-Gangsters:
+### To run the Launcher
 
 ```
-$ (sleep 1; echo "<init 0 50 g>"; sleep 1)|telnet localhost 10007
+RobocarLauncher/target$ java -jar RobocarLauncher-1.0-SNAPSHOT.jar
 ```
-
-*NOTE: You may replace 50 with the number of gangsters you want to add to the simulation.*
-
-### Some program options if you're in trouble
-There are some other options for all the applications listed above, so here they are:
-
-#### Traffic
-```
---version     -> produce version message
---help -h     -> produce help message
---full_log -f -> enable logging of routes (much larger log file)
---verbose -v  -> verbose mode
---shm -s      -> shared memory segment name
---port -p     -> the TCP port that the traffic server is listening on to allow agents to communicate with the traffic simulation, the default value is 10007.
---cars -c     -> number of the random cars, the default value is 100.
---delay -d    -> sleep duration between calculations, the default value is 200
---minutes -m  -> how long does the traffic simulation run for? (-1 means infinite), default is 10
---catchdist   -> the catch distance of cop cars, default is 15.5
---traffictype -> NORMAL|ANTS|ANTS_RND|ANTS_RERND|ANTS_MRERND (default is NORMAL)
-```
-#### Samplemyshmclient
-```
---version     -> produce version message
---help -h     -> produce help message
---verbose -v  -> verbose mode
---shm -s      -> shared memory segment name
---port -p     -> the TCP port that the traffic server is listening on to allow agents to communicate with the traffic simulation, default is 10007
---team -t     -> team name, default is Police
---cops -c     -> the number of cop cars, default is 10
-```
-
-#### Car Window
-```
---playlog -> the log file to replay
-```
-
-If you'd like to replay a log file, there's no need to start the other processes, just the Car Window with the `--playlog=x` option where `x` denotes a valid log file. If you've been running the simulation with full logging enabled, then the routes of the cop cars can be examined during the replay.
